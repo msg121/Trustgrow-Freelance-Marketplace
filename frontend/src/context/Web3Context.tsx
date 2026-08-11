@@ -63,8 +63,7 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
     if (typeof window !== "undefined" && (window as any).ethereum) {
       const handleAccountsChanged = (accounts: string[]) => {
         if (accounts.length > 0) {
-          setAccount(accounts[0]);
-          initProvider(); // Re-init to get the new signer
+          window.location.reload();
         } else {
           setAccount(null);
           setSigner(null);
