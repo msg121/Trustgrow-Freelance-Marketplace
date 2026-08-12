@@ -61,9 +61,20 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
     initProvider();
 
     if (typeof window !== "undefined" && (window as any).ethereum) {
-      const handleAccountsChanged = (accounts: string[]) => {
+      const handleAccountsChanged = async (accounts: string[]) => {
         if (accounts.length > 0) {
-          window.location.reload();
+          try {
+            const browserProvider = new ethers.BrowserProvider((window as any).ethereum);
+            const currentSigner = await browserProvider.getSigner();
+            
+            setProvider(browserProvider);
+            setSigner(currentSigner);
+            setAccount(accounts[0]);
+          } catch (err) {
+            console.error("Failed to update account:", err);
+            // If getSigner fails but we have an account, at least set the account
+            setAccount(accounts[0]);
+          }
         } else {
           setAccount(null);
           setSigner(null);
@@ -111,7 +122,12 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
         }
       }
 
-      await browserProvider.send("eth_requestAccounts", []);
+      // Force MetaMask to show the account selection prompt
+      await (window as any).ethereum.request({
+        method: "wallet_requestPermissions",
+        params: [{ eth_accounts: {} }],
+      });
+      
       const currentSigner = await browserProvider.getSigner();
       const currentAccount = await currentSigner.getAddress();
 

@@ -21,7 +21,16 @@ export const ESCROW_ABI = [
   "function MAX_FEE_BPS() external view returns (uint16)",
   "function BPS_DENOMINATOR() external view returns (uint16)",
   "function owner() external view returns (address)",
-  "function orders(uint256) external view returns (uint256 orderId, address client, address freelancer, uint256 amount, uint16 feeBps, uint8 state, uint256 createdAt, uint256 deadline, string disputeReason)"
+  "function orders(uint256) external view returns (uint256 orderId, address client, address freelancer, uint256 amount, uint16 feeBps, uint8 state, uint256 createdAt, uint256 deadline)",
+  "event OrderCreated(uint256 indexed orderId, address indexed client, address indexed freelancer, uint256 amount, uint256 deadline)",
+  "event OrderAccepted(uint256 indexed orderId, address indexed freelancer)",
+  "event WorkSubmitted(uint256 indexed orderId)",
+  "event OrderCompleted(uint256 indexed orderId, uint256 totalPayout, uint256 totalFee)",
+  "event OrderCancelled(uint256 indexed orderId, address indexed refundTo, uint256 amount)",
+  "event DisputeRaised(uint256 indexed orderId, address indexed raisedBy, string reasonIpfsHash)",
+  "event DisputeResolved(uint256 indexed orderId, address indexed recipient, uint256 payoutAmount, uint256 feeAmount)",
+  "event PlatformFeeUpdated(uint16 newFeeBps)",
+  "event FeesWithdrawn(address indexed owner, uint256 amount)"
 ];
 
 export const ERC20_ABI = [

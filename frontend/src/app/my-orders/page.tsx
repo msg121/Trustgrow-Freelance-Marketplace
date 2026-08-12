@@ -15,7 +15,7 @@ import Link from "next/link";
 type TabFilter = "all" | "created" | "accepted" | "submitted" | "completed" | "cancelled" | "disputed";
 
 export default function MyOrdersPage() {
-  const { getAllOrders } = useEscrow();
+  const { getAllOrders, getContract } = useEscrow();
   const { account, provider } = useWeb3();
   
   const [orders, setOrders] = useState<Order[]>([]);
@@ -43,6 +43,23 @@ export default function MyOrdersPage() {
 
   useEffect(() => {
     fetchOrders();
+
+    if (provider && account) {
+      try {
+        const contract = getContract(true);
+        const onOrderCreated = (orderId: any, client: string, freelancer: string) => {
+          if (client.toLowerCase() === account.toLowerCase() || freelancer.toLowerCase() === account.toLowerCase()) {
+            fetchOrders();
+          }
+        };
+        contract.on("OrderCreated", onOrderCreated);
+        return () => {
+          contract.off("OrderCreated", onOrderCreated);
+        };
+      } catch (err) {
+        console.error("Failed to setup event listener", err);
+      }
+    }
   }, [provider, account]);
 
   const filteredOrders = orders.filter((o) => {
@@ -73,8 +90,9 @@ export default function MyOrdersPage() {
   ];
 
   return (
-    <PageContainer>
-      <SectionHeader 
+    <div className="bg-[#0d0e15] min-h-screen">
+      <PageContainer>
+        <SectionHeader 
         title="My Orders" 
         description="Manage the escrows you've created or are working on."
         action={
@@ -100,15 +118,15 @@ export default function MyOrdersPage() {
       ) : (
         <div className="space-y-6">
           {/* Tabs */}
-          <div className="flex overflow-x-auto hide-scrollbar bg-slate-900/50 p-2 border border-slate-800 rounded-2xl gap-2">
+          <div className="flex overflow-x-auto hide-scrollbar bg-slate-900 p-2 border border-slate-700/50 rounded-2xl gap-2 shadow-lg">
             {tabs.map((t) => (
               <button
                 key={t.value}
                 onClick={() => setFilter(t.value)}
-                className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-semibold capitalize transition-all ${
+                className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-bold capitalize transition-all ${
                   filter === t.value 
-                    ? "bg-indigo-600 text-white shadow-md" 
-                    : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                    ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-[0_0_10px_rgba(59,130,246,0.5)]" 
+                    : "text-blue-100 hover:text-white hover:bg-slate-800"
                 }`}
               >
                 {t.label}
@@ -135,10 +153,14 @@ export default function MyOrdersPage() {
               action={
                 <div className="flex gap-4 justify-center">
                   <Link href="/create-order">
-                    <Button>Create an Order</Button>
+                    <Button className="bg-gradient-to-r from-blue-500 to-purple-500 border-none hover:from-blue-600 hover:to-purple-600 shadow-[0_0_15px_rgba(59,130,246,0.4)] text-white font-bold">
+                      Create an Order
+                    </Button>
                   </Link>
                   <Link href="/marketplace">
-                    <Button variant="outline">Browse Marketplace</Button>
+                    <Button className="bg-gradient-to-r from-fuchsia-500 to-pink-500 border-none hover:from-fuchsia-600 hover:to-pink-600 shadow-[0_0_15px_rgba(217,70,239,0.4)] text-white font-bold">
+                      Browse Marketplace
+                    </Button>
                   </Link>
                 </div>
               }
@@ -146,6 +168,7 @@ export default function MyOrdersPage() {
           )}
         </div>
       )}
-    </PageContainer>
+      </PageContainer>
+    </div>
   );
 }

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { OrderTimeline } from "@/components/orders/OrderTimeline";
 import { DisputeForm } from "@/components/orders/DisputeForm";
+import { OrderChat } from "@/components/orders/OrderChat";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ethers } from "ethers";
 import { Wallet, Info, ArrowLeft, User, DollarSign, Calendar, Clock, AlertTriangle } from "lucide-react";
@@ -174,6 +175,17 @@ export default function OrderDetailsPage() {
               </div>
             </div>
           </Card>
+
+          {/* Chat & Evidence System */}
+          <div className="mt-8">
+            <OrderChat 
+              orderId={orderId.toString()} 
+              currentAccount={account} 
+              clientAddress={order.client} 
+              freelancerAddress={order.freelancer}
+              isAdmin={account?.toLowerCase() === "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266".toLowerCase()} // Simplified admin check for demo (Hardhat #0)
+            />
+          </div>
         </div>
 
         {/* Financials & Actions */}

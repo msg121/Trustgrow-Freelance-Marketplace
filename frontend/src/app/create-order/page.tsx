@@ -90,152 +90,162 @@ export default function CreateOrderPage() {
   }
 
   return (
-    <PageContainer maxWidth="2xl">
-      <SectionHeader 
-        title="Create Escrow Order" 
-        description="Fund a new smart contract escrow to securely hire a freelancer."
-      />
+    <div className="min-h-[calc(100vh-80px)] w-full bg-gradient-to-br from-blue-900 via-indigo-950 to-blue-950 relative overflow-hidden flex items-center justify-center py-12">
+      {/* Decorative Elements */}
+      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-500/30 rounded-full filter blur-[100px] pointer-events-none mix-blend-screen"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-indigo-500/30 rounded-full filter blur-[100px] pointer-events-none mix-blend-screen"></div>
 
-      {/* Progress Steps */}
-      <div className="flex items-center justify-between mb-8 relative">
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-800 -z-10 rounded-full"></div>
-        <div 
-          className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-indigo-500 -z-10 rounded-full transition-all duration-500"
-          style={{ width: `${((step - 1) / 2) * 100}%` }}
-        ></div>
-        
-        {[
-          { num: 1, label: "Details" },
-          { num: 2, label: "Approve" },
-          { num: 3, label: "Create" }
-        ].map((s) => (
-          <div key={s.num} className="flex flex-col items-center">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2 transition-colors ${
-              step >= s.num 
-                ? "bg-indigo-600 border-indigo-600 text-white" 
-                : "bg-slate-900 border-slate-700 text-slate-500"
-            }`}>
-              {step > s.num ? <CheckCircle2 className="w-5 h-5" /> : s.num}
-            </div>
-            <span className={`text-xs font-semibold mt-2 ${step >= s.num ? "text-slate-300" : "text-slate-500"}`}>
-              {s.label}
-            </span>
-          </div>
-        ))}
-      </div>
+      <PageContainer maxWidth="2xl" className="relative z-10 w-full">
+        <div className="text-center mb-10">
+          <h1 className="text-3xl md:text-5xl font-extrabold text-white mb-4 tracking-tight drop-shadow-sm">
+            Create Escrow Order
+          </h1>
+          <p className="text-blue-200 text-lg">
+            Fund a new smart contract escrow to securely hire a freelancer.
+          </p>
+        </div>
 
-      <Card>
-        {error && (
-          <div className="mb-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm flex items-start">
-            <Info className="w-5 h-5 mr-3 shrink-0" />
-            <p>{error}</p>
-          </div>
-        )}
-
-        {step === 1 && (
-          <form onSubmit={handleNextStep} className="space-y-6">
-            <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4 flex items-start mb-6">
-              <Info className="w-5 h-5 text-indigo-400 mr-3 shrink-0 mt-0.5" />
-              <div className="text-sm text-indigo-300">
-                <p className="font-semibold mb-1">On-Chain Privacy Notice</p>
-                <p>The smart contract does NOT store job descriptions or titles on-chain to save gas and preserve privacy. Share project specifics off-chain.</p>
+        {/* Progress Steps */}
+        <div className="flex items-center justify-between mb-8 relative px-4">
+          <div className="absolute left-4 right-4 top-1/2 -translate-y-1/2 h-1 bg-white/10 -z-10 rounded-full"></div>
+          <div 
+            className="absolute left-4 top-1/2 -translate-y-1/2 h-1 bg-blue-400 -z-10 rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(96,165,250,0.8)]"
+            style={{ width: `calc(${((step - 1) / 2) * 100}% - 32px)` }}
+          ></div>
+          
+          {[
+            { num: 1, label: "Details" },
+            { num: 2, label: "Approve" },
+            { num: 3, label: "Create" }
+          ].map((s) => (
+            <div key={s.num} className="flex flex-col items-center">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-base border-2 transition-all duration-300 ${
+                step >= s.num 
+                  ? "bg-blue-500 border-blue-400 text-white shadow-[0_0_15px_rgba(59,130,246,0.6)]" 
+                  : "bg-indigo-950/80 border-indigo-800 text-indigo-400 backdrop-blur-md"
+              }`}>
+                {step > s.num ? <CheckCircle2 className="w-6 h-6 text-white" /> : s.num}
               </div>
+              <span className={`text-sm font-bold mt-3 tracking-wide ${step >= s.num ? "text-white" : "text-indigo-300/70"}`}>
+                {s.label}
+              </span>
             </div>
+          ))}
+        </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-slate-300 mb-2">Freelancer Wallet Address</label>
-              <input
-                type="text"
-                placeholder="0x..."
-                value={freelancer}
-                onChange={(e) => setFreelancer(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-mono"
-                required
-              />
+        <Card className="!bg-white/10 !backdrop-blur-xl !border-white/20 shadow-2xl">
+          {error && (
+            <div className="mb-6 p-4 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-200 text-sm flex items-start shadow-inner">
+              <Info className="w-5 h-5 mr-3 shrink-0" />
+              <p>{error}</p>
             </div>
+          )}
 
-            <div className="grid grid-cols-2 gap-4">
+          {step === 1 && (
+            <form onSubmit={handleNextStep} className="space-y-6">
+              <div className="bg-blue-900/40 border border-blue-400/30 rounded-xl p-4 flex items-start mb-6">
+                <Info className="w-5 h-5 text-blue-300 mr-3 shrink-0 mt-0.5" />
+                <div className="text-sm text-blue-100">
+                  <p className="font-bold mb-1 tracking-wide">On-Chain Privacy Notice</p>
+                  <p className="opacity-90">The smart contract does NOT store job descriptions or titles on-chain to save gas and preserve privacy. Share project specifics off-chain.</p>
+                </div>
+              </div>
+
               <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-2">Amount (ERC20)</label>
+                <label className="block text-sm font-bold text-blue-100 mb-2">Freelancer Wallet Address</label>
                 <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="100"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                  type="text"
+                  placeholder="0x..."
+                  value={freelancer}
+                  onChange={(e) => setFreelancer(e.target.value)}
+                  className="w-full bg-indigo-950/50 border border-indigo-400/30 rounded-xl px-4 py-3 text-white placeholder-indigo-300/40 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50 transition-all font-mono shadow-inner"
                   required
                 />
               </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-2">Duration (Days)</label>
-                <input
-                  type="number"
-                  min="1"
-                  placeholder="7"
-                  value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
-                  required
-                />
-              </div>
-            </div>
 
-            <Button type="submit" className="w-full mt-4" rightIcon={<ArrowRight className="w-4 h-4" />}>
-              Review Order Summary
-            </Button>
-          </form>
-        )}
-
-        {(step === 2 || step === 3) && (
-          <div className="space-y-6">
-            <h3 className="text-xl font-bold text-white mb-4">Order Summary</h3>
-            
-            <div className="bg-slate-950 rounded-xl p-5 border border-slate-800 space-y-4">
-              <div className="flex justify-between items-center border-b border-slate-800/50 pb-4">
-                <span className="text-slate-400 text-sm">Freelancer</span>
-                <span className="font-mono text-sm text-slate-200">{freelancer}</span>
-              </div>
-              <div className="flex justify-between items-center border-b border-slate-800/50 pb-4">
-                <span className="text-slate-400 text-sm">Total Deposit</span>
-                <span className="font-bold text-lg text-white">{amount} <span className="text-indigo-400 text-sm">ERC20</span></span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-slate-400 text-sm">Duration</span>
-                <span className="font-medium text-slate-200">{duration} Days</span>
-              </div>
-            </div>
-
-            {step === 2 && (
-              <div className="mt-8">
-                <p className="text-sm text-slate-400 mb-4 text-center">
-                  Step 1 of 2: You must approve the Escrow Contract to spend your ERC20 tokens.
-                </p>
-                <div className="flex gap-4">
-                  <Button variant="ghost" onClick={() => setStep(1)} disabled={isApproving}>Back</Button>
-                  <Button onClick={handleApprove} isLoading={isApproving} className="flex-1">
-                    Approve Tokens
-                  </Button>
+              <div className="grid grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-sm font-bold text-blue-100 mb-2">Amount (ERC20)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="100"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="w-full bg-indigo-950/50 border border-indigo-400/30 rounded-xl px-4 py-3 text-white placeholder-indigo-300/40 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50 transition-all shadow-inner"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-blue-100 mb-2">Duration (Days)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="7"
+                    value={duration}
+                    onChange={(e) => setDuration(e.target.value)}
+                    className="w-full bg-indigo-950/50 border border-indigo-400/30 rounded-xl px-4 py-3 text-white placeholder-indigo-300/40 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50 transition-all shadow-inner"
+                    required
+                  />
                 </div>
               </div>
-            )}
 
-            {step === 3 && (
-              <div className="mt-8">
-                <p className="text-sm text-slate-400 mb-4 text-center">
-                  Step 2 of 2: Create the Escrow Order and lock funds securely in the smart contract.
-                </p>
-                <div className="flex gap-4">
-                  <Button onClick={handleCreate} isLoading={isCreating} className="flex-1" leftIcon={<Shield className="w-4 h-4" />}>
-                    Create Escrow Order
-                  </Button>
+              <Button type="submit" className="w-full mt-6 !bg-blue-600 hover:!bg-blue-500 text-white font-bold py-4 text-lg shadow-[0_0_15px_rgba(37,99,235,0.4)] hover:shadow-[0_0_25px_rgba(37,99,235,0.6)] transition-all" rightIcon={<ArrowRight className="w-5 h-5" />}>
+                Review Order Summary
+              </Button>
+            </form>
+          )}
+
+          {(step === 2 || step === 3) && (
+            <div className="space-y-6">
+              <h3 className="text-2xl font-bold text-white mb-6 text-center border-b border-white/10 pb-4">Order Summary</h3>
+              
+              <div className="bg-indigo-950/40 rounded-xl p-6 border border-white/10 space-y-5 shadow-inner">
+                <div className="flex justify-between items-center border-b border-white/10 pb-4">
+                  <span className="text-blue-200 text-sm font-medium">Freelancer</span>
+                  <span className="font-mono text-sm text-white bg-white/10 px-3 py-1 rounded-md border border-white/5">{freelancer}</span>
+                </div>
+                <div className="flex justify-between items-center border-b border-white/10 pb-4">
+                  <span className="text-blue-200 text-sm font-medium">Total Deposit</span>
+                  <span className="font-bold text-2xl text-white">{amount} <span className="text-blue-400 text-sm">ERC20</span></span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-blue-200 text-sm font-medium">Duration</span>
+                  <span className="font-bold text-white bg-blue-500/20 text-blue-200 px-3 py-1 rounded-md border border-blue-400/30">{duration} Days</span>
                 </div>
               </div>
-            )}
-          </div>
-        )}
-      </Card>
-    </PageContainer>
+
+              {step === 2 && (
+                <div className="mt-8">
+                  <p className="text-sm text-blue-200 mb-6 text-center font-medium">
+                    Step 1 of 2: You must approve the Escrow Contract to spend your ERC20 tokens.
+                  </p>
+                  <div className="flex gap-4">
+                    <Button variant="ghost" onClick={() => setStep(1)} disabled={isApproving} className="!text-white hover:!bg-white/10 border border-white/20">Back</Button>
+                    <Button onClick={handleApprove} isLoading={isApproving} className="flex-1 !bg-blue-600 hover:!bg-blue-500 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)] font-bold text-lg">
+                      Approve Tokens
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {step === 3 && (
+                <div className="mt-8">
+                  <p className="text-sm text-blue-200 mb-6 text-center font-medium">
+                    Step 2 of 2: Create the Escrow Order and lock funds securely in the smart contract.
+                  </p>
+                  <div className="flex gap-4">
+                    <Button onClick={handleCreate} isLoading={isCreating} className="flex-1 !bg-emerald-600 hover:!bg-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] font-bold text-lg transition-all" leftIcon={<Shield className="w-5 h-5" />}>
+                      Create Escrow Order
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </Card>
+      </PageContainer>
+    </div>
   );
 }

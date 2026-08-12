@@ -81,16 +81,16 @@ export default function MarketplacePage() {
       ) : (
         <div className="space-y-6">
           {/* Filters & Search */}
-          <div className="flex flex-col sm:flex-row justify-between gap-4 bg-slate-900/50 p-4 border border-slate-800 rounded-2xl">
-            <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800 w-fit">
+          <div className="flex flex-col sm:flex-row justify-between gap-4 bg-slate-900 p-4 border border-slate-700/50 rounded-2xl shadow-lg">
+            <div className="flex bg-slate-800/80 p-1 rounded-xl border border-slate-700 w-fit">
               {(["all", "active", "completed"] as const).map((f) => (
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-medium capitalize transition-all ${
+                  className={`px-4 py-1.5 rounded-lg text-sm font-bold capitalize transition-all ${
                     filter === f 
-                      ? "bg-indigo-600 text-white shadow-md" 
-                      : "text-slate-400 hover:text-white"
+                      ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-[0_0_10px_rgba(59,130,246,0.5)]" 
+                      : "text-blue-100 hover:text-white hover:bg-slate-700/50"
                   }`}
                 >
                   {f}
@@ -124,7 +124,9 @@ export default function MarketplacePage() {
               description="There are currently no public escrow orders available matching your criteria."
               action={
                 <Link href="/create-order">
-                  <Button variant="outline">Create an Order</Button>
+                  <Button className="bg-gradient-to-r from-blue-500 to-purple-500 border-none hover:from-blue-600 hover:to-purple-600 shadow-[0_0_15px_rgba(59,130,246,0.4)] text-white font-bold">
+                    Create an Order
+                  </Button>
                 </Link>
               }
             />

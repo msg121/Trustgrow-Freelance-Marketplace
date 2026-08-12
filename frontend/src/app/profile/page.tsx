@@ -23,7 +23,7 @@ export default function ProfilePage() {
       if (!account) return;
       try {
         const bal = await getBalance(account);
-        setBalance(ethers.formatEther(bal));
+        setBalance(Number(ethers.formatEther(bal)).toFixed(2));
       } catch (err) {
         console.error("Failed to fetch balance", err);
       }

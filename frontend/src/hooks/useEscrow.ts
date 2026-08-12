@@ -64,15 +64,15 @@ export function useEscrow() {
     const contract = getContract(true);
     const data = await contract.orders(orderId);
     return {
-      orderId: Number(data.orderId),
-      client: data.client,
-      freelancer: data.freelancer,
-      amount: data.amount,
-      feeBps: Number(data.feeBps),
-      state: Number(data.state),
-      createdAt: Number(data.createdAt),
-      deadline: Number(data.deadline),
-      disputeReason: data.disputeReason,
+      orderId: Number(data[0]),
+      client: data[1],
+      freelancer: data[2],
+      amount: data[3],
+      feeBps: Number(data[4]),
+      state: Number(data[5]),
+      createdAt: Number(data[6]),
+      deadline: Number(data[7]),
+      disputeReason: "", // Not returned by mapping getter
     };
   };
 

@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import Link from "next/link";
+import { ERC20_ABI, ERC20_CONTRACT_ADDRESS, ESCROW_CONTRACT_ADDRESS } from "@/config/contracts";
 
 export default function DashboardPage() {
   const { getAllOrders, getContract } = useEscrow();
@@ -30,6 +31,47 @@ export default function DashboardPage() {
   // Dispute Resolution State
   const [isResolving, setIsResolving] = useState(false);
   const [resolveError, setResolveError] = useState<string | null>(null);
+  
+  // Dev Tools State
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const generateTestOrders = async () => {
+    if (!provider || !account) return;
+    try {
+      setIsGenerating(true);
+      const signer = await provider.getSigner();
+      
+      const erc20 = new ethers.Contract(ERC20_CONTRACT_ADDRESS, ERC20_ABI, signer);
+      const escrow = getContract(false);
+
+      // Approve 300 tokens
+      const totalAmount = ethers.parseEther("300");
+      const approveTx = await erc20.approve(ESCROW_CONTRACT_ADDRESS, totalAmount);
+      await approveTx.wait();
+
+      // Create 3 orders
+      const amounts = ["50", "100", "150"];
+      // Random dummy test address (so it doesn't fail the msg.sender != freelancer check)
+      const testFreelancer = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
+      const durationSeconds = 7 * 24 * 60 * 60; // 7 days
+
+      for (let i = 0; i < 3; i++) {
+        const tx = await escrow.createOrder(
+          testFreelancer, 
+          ethers.parseEther(amounts[i]), 
+          durationSeconds
+        );
+        await tx.wait();
+      }
+
+      window.location.reload();
+    } catch (err: any) {
+      console.error(err);
+      alert("Failed to generate test orders: " + err.message);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -116,13 +158,13 @@ export default function DashboardPage() {
             />
             <StatCard
               title="Value Escrowed"
-              value={`${ethers.formatEther(totalEscrowed)}`}
+              value={`${Number(ethers.formatEther(totalEscrowed)).toFixed(2)}`}
               subtitle="ERC-20 Tokens"
               icon={<DollarSign className="w-5 h-5" />}
             />
             <StatCard
               title="Platform Fees"
-              value={`${ethers.formatEther(accumulatedFees)}`}
+              value={`${Number(ethers.formatEther(accumulatedFees)).toFixed(2)}`}
               subtitle={`Fee Rate: ${(platformFeeBps / 100).toFixed(1)}%`}
               icon={<DollarSign className="w-5 h-5" />}
               variant="highlight"
@@ -212,6 +254,24 @@ export default function DashboardPage() {
                   )}
                 </>
               )}
+            </Card>
+
+            {/* Developer Tools */}
+            <Card padding="md" className="border-indigo-500/30 bg-indigo-950/10">
+              <h3 className="text-lg font-bold text-white mb-2 flex items-center">
+                 Developer Tools
+              </h3>
+              <p className="text-sm text-slate-400 mb-4">
+                Quickly generate 3 test orders to populate the dashboard. You will need to confirm 4 transactions (1 Approval + 3 Orders).
+              </p>
+              <Button 
+                onClick={generateTestOrders} 
+                disabled={isGenerating || !account}
+                isLoading={isGenerating}
+                className="w-full !bg-indigo-600 hover:!bg-indigo-500 text-white"
+              >
+                Generate 3 Test Orders
+              </Button>
             </Card>
           </div>
         </div>
