@@ -1,6 +1,7 @@
 import { useWeb3 } from "@/context/Web3Context";
 import { Contract, ethers } from "ethers";
 import { ESCROW_ABI, ESCROW_CONTRACT_ADDRESS } from "@/config/contracts";
+import toast from "react-hot-toast";
 
 export interface Order {
   orderId: number;
@@ -26,38 +27,68 @@ export function useEscrow() {
 
   const createOrder = async (freelancer: string, amount: bigint, durationSeconds: number) => {
     const contract = getContract(false);
-    const tx = await contract.createOrder(freelancer, amount, durationSeconds);
-    return await tx.wait();
+    const txPromise = contract.createOrder(freelancer, amount, durationSeconds).then((tx: any) => tx.wait());
+    
+    return toast.promise(txPromise, {
+      loading: 'Creating Order...',
+      success: 'Order created successfully!',
+      error: 'Failed to create order.'
+    });
   };
 
   const acceptOrder = async (orderId: number) => {
     const contract = getContract(false);
-    const tx = await contract.acceptOrder(orderId);
-    return await tx.wait();
+    const txPromise = contract.acceptOrder(orderId).then((tx: any) => tx.wait());
+    
+    return toast.promise(txPromise, {
+      loading: 'Accepting Order...',
+      success: 'Order accepted successfully!',
+      error: 'Failed to accept order.'
+    });
   };
 
   const submitWork = async (orderId: number) => {
     const contract = getContract(false);
-    const tx = await contract.submitWork(orderId);
-    return await tx.wait();
+    const txPromise = contract.submitWork(orderId).then((tx: any) => tx.wait());
+    
+    return toast.promise(txPromise, {
+      loading: 'Submitting Work...',
+      success: 'Work submitted successfully!',
+      error: 'Failed to submit work.'
+    });
   };
 
   const approveAndRelease = async (orderId: number) => {
     const contract = getContract(false);
-    const tx = await contract.approveAndRelease(orderId);
-    return await tx.wait();
+    const txPromise = contract.approveAndRelease(orderId).then((tx: any) => tx.wait());
+    
+    return toast.promise(txPromise, {
+      loading: 'Approving Work & Releasing Funds...',
+      success: 'Funds released successfully!',
+      error: 'Failed to approve work.'
+    });
   };
 
   const cancelOrder = async (orderId: number) => {
     const contract = getContract(false);
-    const tx = await contract.cancelOrder(orderId);
-    return await tx.wait();
+    const txPromise = contract.cancelOrder(orderId).then((tx: any) => tx.wait());
+    
+    return toast.promise(txPromise, {
+      loading: 'Cancelling Order...',
+      success: 'Order cancelled successfully!',
+      error: 'Failed to cancel order.'
+    });
   };
 
   const raiseDispute = async (orderId: number, reason: string) => {
     const contract = getContract(false);
-    const tx = await contract.raiseDispute(orderId, reason);
-    return await tx.wait();
+    const txPromise = contract.raiseDispute(orderId, reason).then((tx: any) => tx.wait());
+    
+    return toast.promise(txPromise, {
+      loading: 'Raising Dispute...',
+      success: 'Dispute raised successfully!',
+      error: 'Failed to raise dispute.'
+    });
   };
 
   const getOrder = async (orderId: number): Promise<Order> => {

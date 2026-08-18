@@ -3,6 +3,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { BrowserProvider, JsonRpcSigner, ethers } from "ethers";
 import { SEPOLIA_CHAIN_ID } from "../config/contracts";
+import { supabase, UserProfile } from "../lib/supabaseClient";
+import toast from "react-hot-toast";
 
 interface Web3ContextType {
   provider: BrowserProvider | null;
@@ -13,6 +15,8 @@ interface Web3ContextType {
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
   error: string | null;
+  userProfile: UserProfile | null;
+  fetchProfile: (address: string) => Promise<void>;
 }
 
 const Web3Context = createContext<Web3ContextType>({
@@ -24,6 +28,8 @@ const Web3Context = createContext<Web3ContextType>({
   connectWallet: async () => {},
   disconnectWallet: () => {},
   error: null,
+  userProfile: null,
+  fetchProfile: async () => {},
 });
 
 export const useWeb3 = () => useContext(Web3Context);
@@ -35,6 +41,31 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
   const [chainId, setChainId] = useState<number | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+
+  const fetchProfile = async (address: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', address.toLowerCase())
+        .single();
+        
+      if (data) {
+        setUserProfile(data as UserProfile);
+      } else {
+        setUserProfile(null);
+      }
+    } catch (err) {
+      console.warn("Failed to fetch profile (dummy keys). Falling back to local storage.");
+      const localProfile = localStorage.getItem(`profile_${address.toLowerCase()}`);
+      if (localProfile) {
+        setUserProfile(JSON.parse(localProfile));
+      } else {
+        setUserProfile(null);
+      }
+    }
+  };
 
   const initProvider = async () => {
     if (typeof window !== "undefined" && (window as any).ethereum) {
@@ -60,6 +91,12 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     initProvider();
 
+    if (account) {
+      fetchProfile(account);
+    } else {
+      setUserProfile(null);
+    }
+
     if (typeof window !== "undefined" && (window as any).ethereum) {
       const handleAccountsChanged = async (accounts: string[]) => {
         if (accounts.length > 0) {
@@ -78,6 +115,8 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
         } else {
           setAccount(null);
           setSigner(null);
+          setUserProfile(null);
+          toast("Wallet disconnected", { icon: "🔌" });
         }
       };
 
@@ -135,9 +174,12 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
       setSigner(currentSigner);
       setAccount(currentAccount);
       setChainId(SEPOLIA_CHAIN_ID);
+      
+      toast.success("Wallet connected!");
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Failed to connect wallet");
+      toast.error(err.message || "Failed to connect wallet");
     } finally {
       setIsConnecting(false);
     }
@@ -146,6 +188,8 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
   const disconnectWallet = () => {
     setAccount(null);
     setSigner(null);
+    setUserProfile(null);
+    toast("Wallet disconnected", { icon: "🔌" });
   };
 
   return (
@@ -159,6 +203,8 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
         connectWallet,
         disconnectWallet,
         error,
+        userProfile,
+        fetchProfile,
       }}
     >
       {children}

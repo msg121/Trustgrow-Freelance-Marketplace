@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Send, Paperclip, ExternalLink, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { supabase } from "@/lib/supabaseClient";
+import toast from "react-hot-toast";
 
 interface ChatMessage {
   id: string;
-  senderAddress: string;
+  order_id: string;
+  sender_address: string;
   text: string;
-  isEvidence: boolean;
-  ipfsHash?: string;
+  is_evidence: boolean;
+  ipfs_hash?: string;
   timestamp: number;
 }
 
@@ -22,54 +25,157 @@ interface OrderChatProps {
 export function OrderChat({ orderId, currentAccount, clientAddress, freelancerAddress, isAdmin = false }: OrderChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Load messages from localStorage on mount
+  // Fetch initial messages and subscribe to new ones
   useEffect(() => {
-    const saved = localStorage.getItem(`order_chat_${orderId}`);
-    if (saved) {
-      setMessages(JSON.parse(saved));
-    }
+    const fetchMessages = async () => {
+      const { data, error } = await supabase
+        .from("messages")
+        .select("*")
+        .eq("order_id", orderId)
+        .order("timestamp", { ascending: true });
+
+      if (error) {
+        console.warn("Error fetching messages (dummy keys).");
+      } else if (data) {
+        setMessages(data as ChatMessage[]);
+      }
+    };
+
+    fetchMessages();
+
+    // Subscribe to new messages for this order
+    const channel = supabase
+      .channel(`chat_order_${orderId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages", filter: `order_id=eq.${orderId}` },
+        (payload) => {
+          setMessages((prev) => {
+            // Check if message already exists (in case we inserted it ourselves)
+            if (prev.find((m) => m.id === payload.new.id)) return prev;
+            return [...prev, payload.new as ChatMessage];
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [orderId]);
 
-  // Save messages to localStorage whenever they change
+  // Scroll to bottom when messages change
   useEffect(() => {
-    localStorage.setItem(`order_chat_${orderId}`, JSON.stringify(messages));
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, orderId]);
+  }, [messages]);
 
-  const handleSend = (e: React.FormEvent) => {
+  const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText.trim() || !currentAccount) return;
 
-    const newMessage: ChatMessage = {
-      id: Math.random().toString(36).substr(2, 9),
-      senderAddress: currentAccount,
+    const newMessage = {
+      order_id: orderId,
+      sender_address: currentAccount.toLowerCase(),
       text: inputText.trim(),
-      isEvidence: false,
+      is_evidence: false,
       timestamp: Date.now(),
     };
 
-    setMessages([...messages, newMessage]);
-    setInputText("");
+    setInputText(""); // Optimistic clear
+
+    const { data, error } = await supabase
+      .from("messages")
+      .insert([newMessage])
+      .select();
+
+    if (error) {
+      toast.error("Failed to send message.");
+      console.warn("Supabase fetch failed (dummy keys).");
+    } else if (data && data[0]) {
+      setMessages((prev) => {
+        if (prev.find((m) => m.id === data[0].id)) return prev;
+        return [...prev, data[0] as ChatMessage];
+      });
+    }
   };
 
-  const handleUploadEvidence = () => {
+  const handleUploadEvidence = async () => {
     if (!currentAccount) return;
     
-    // Fake IPFS upload for demo purposes
-    const fakeCid = "Qm" + Math.random().toString(36).substr(2, 40) + "FakeHashDemo";
+    // Create an invisible file input element
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
     
-    const newMessage: ChatMessage = {
-      id: Math.random().toString(36).substr(2, 9),
-      senderAddress: currentAccount,
-      text: "Uploaded a new evidence document.",
-      isEvidence: true,
-      ipfsHash: fakeCid,
-      timestamp: Date.now(),
+    fileInput.onchange = async (e: any) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      setIsUploading(true);
+      const loadingToast = toast.loading("Uploading to IPFS via Pinata...");
+
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const pinataApiKey = process.env.NEXT_PUBLIC_PINATA_API_KEY;
+        const pinataSecret = process.env.NEXT_PUBLIC_PINATA_SECRET_API_KEY;
+
+        if (!pinataApiKey || !pinataSecret) {
+            toast.error("Pinata API Keys not configured!");
+            throw new Error("Missing Pinata config");
+        }
+
+        const res = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
+          method: "POST",
+          headers: {
+            pinata_api_key: pinataApiKey,
+            pinata_secret_api_key: pinataSecret,
+          },
+          body: formData,
+        });
+
+        const resData = await res.json();
+        
+        if (!res.ok) throw new Error(resData.error || "Failed to upload to IPFS");
+
+        const ipfsHash = resData.IpfsHash;
+
+        const newMessage = {
+          order_id: orderId,
+          sender_address: currentAccount.toLowerCase(),
+          text: `Uploaded evidence document: ${file.name}`,
+          is_evidence: true,
+          ipfs_hash: ipfsHash,
+          timestamp: Date.now(),
+        };
+
+        const { data, error } = await supabase
+          .from("messages")
+          .insert([newMessage])
+          .select();
+
+        if (error) throw error;
+
+        toast.success("Evidence uploaded!", { id: loadingToast });
+
+        if (data && data[0]) {
+          setMessages((prev) => {
+            if (prev.find((m) => m.id === data[0].id)) return prev;
+            return [...prev, data[0] as ChatMessage];
+          });
+        }
+      } catch (err: any) {
+        toast.error("Failed to upload evidence", { id: loadingToast });
+        console.error(err);
+      } finally {
+        setIsUploading(false);
+      }
     };
 
-    setMessages([...messages, newMessage]);
+    fileInput.click();
   };
 
   const getSenderRole = (address: string) => {
@@ -96,7 +202,7 @@ export function OrderChat({ orderId, currentAccount, clientAddress, freelancerAd
       <div className="bg-slate-800/80 px-6 py-4 border-b border-slate-700/50 flex justify-between items-center">
         <div>
           <h3 className="text-lg font-bold text-white">Project Chat & Evidence</h3>
-          <p className="text-xs text-slate-400">All messages are saved locally for this demo.</p>
+          <p className="text-xs text-slate-400">Powered by Supabase Realtime & IPFS.</p>
         </div>
         {isAdmin && (
           <div className="flex items-center gap-2 bg-rose-500/10 text-rose-400 px-3 py-1 rounded-full text-xs font-bold border border-rose-500/20">
@@ -115,8 +221,8 @@ export function OrderChat({ orderId, currentAccount, clientAddress, freelancerAd
           </div>
         ) : (
           messages.map((msg) => {
-            const isMe = currentAccount && msg.senderAddress.toLowerCase() === currentAccount.toLowerCase();
-            const role = getSenderRole(msg.senderAddress);
+            const isMe = currentAccount && msg.sender_address.toLowerCase() === currentAccount.toLowerCase();
+            const role = getSenderRole(msg.sender_address);
             
             return (
               <div key={msg.id} className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}>
@@ -134,7 +240,7 @@ export function OrderChat({ orderId, currentAccount, clientAddress, freelancerAd
                 }`}>
                   <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
                   
-                  {msg.isEvidence && msg.ipfsHash && (
+                  {msg.is_evidence && msg.ipfs_hash && (
                     <div className={`mt-3 p-3 rounded-xl border flex items-start gap-3 ${
                       isMe ? "bg-white/10 border-white/20" : "bg-slate-900/50 border-slate-700"
                     }`}>
@@ -143,10 +249,11 @@ export function OrderChat({ orderId, currentAccount, clientAddress, freelancerAd
                       </div>
                       <div className="overflow-hidden">
                         <p className="text-xs font-bold text-emerald-400 mb-1">IPFS Evidence Link</p>
-                        <p className="text-[10px] font-mono truncate opacity-70 mb-1">{msg.ipfsHash}</p>
+                        <p className="text-[10px] font-mono truncate opacity-70 mb-1">{msg.ipfs_hash}</p>
                         <a 
-                          href="#"
-                          onClick={(e) => { e.preventDefault(); alert("This is a demo! In production, this opens ipfs.io/ipfs/" + msg.ipfsHash); }}
+                          href={`https://ipfs.io/ipfs/${msg.ipfs_hash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="text-[10px] font-bold underline flex items-center gap-1 hover:opacity-80 transition-opacity"
                         >
                           View File <ExternalLink className="w-3 h-3" />
@@ -172,6 +279,7 @@ export function OrderChat({ orderId, currentAccount, clientAddress, freelancerAd
               className="px-3 border-slate-600 hover:bg-slate-700"
               onClick={handleUploadEvidence}
               title="Upload Evidence to IPFS"
+              isLoading={isUploading}
             >
               <Paperclip className="w-5 h-5 text-slate-400" />
             </Button>

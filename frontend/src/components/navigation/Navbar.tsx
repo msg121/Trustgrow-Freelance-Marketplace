@@ -18,7 +18,8 @@ export function Navbar() {
 
   const navLinks = [
     { href: "/", label: "Home" },
-    { href: "/marketplace", label: "Marketplace" },
+    { href: "/jobs", label: "Open Jobs" },
+    { href: "/marketplace", label: "Escrows" },
     { href: "/create-order", label: "Create Order" },
     { href: "/my-orders", label: "My Orders" },
     { href: "/dashboard", label: "Dashboard" },

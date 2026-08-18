@@ -52,8 +52,7 @@ export default function OrderDetailsPage() {
     try {
       setError(null);
       setIsActioning(true);
-      const tx = await actionFn();
-      await tx.wait();
+      await actionFn();
       await fetchOrder();
     } catch (err: any) {
       console.error(err);
