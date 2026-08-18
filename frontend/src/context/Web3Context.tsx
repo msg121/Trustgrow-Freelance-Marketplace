@@ -142,7 +142,14 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
     setError(null);
     try {
       if (!(window as any).ethereum) {
-        throw new Error("MetaMask is not installed");
+        // Handle Mobile Browsers
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (isMobile) {
+          const dappUrl = window.location.href.split('//')[1];
+          window.location.href = `https://metamask.app.link/dapp/${dappUrl}`;
+          throw new Error("Redirecting to MetaMask App...");
+        }
+        throw new Error("MetaMask is not installed. Please install it on desktop or open in MetaMask browser on mobile.");
       }
 
       const browserProvider = new ethers.BrowserProvider((window as any).ethereum);

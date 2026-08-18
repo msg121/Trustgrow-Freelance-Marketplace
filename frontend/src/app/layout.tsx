@@ -17,8 +17,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Web3 Escrow Marketplace",
-  description: "A professional decentralized freelance marketplace",
+  title: "TrustGrow - Web3 Freelance Marketplace",
+  description: "A professional decentralized freelance marketplace and escrow platform built on Ethereum.",
+  openGraph: {
+    title: "TrustGrow - Web3 Freelance Marketplace",
+    description: "A professional decentralized freelance marketplace and escrow platform built on Ethereum.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "TrustGrow - Web3 Freelance Marketplace",
+    description: "A professional decentralized freelance marketplace and escrow platform built on Ethereum.",
+  },
 };
 
 export default function RootLayout({
