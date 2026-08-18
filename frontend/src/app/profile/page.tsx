@@ -10,7 +10,7 @@ import { SectionHeader } from "@/components/layout/SectionHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { supabase } from "@/lib/supabaseClient";
+
 import toast from "react-hot-toast";
 
 export default function ProfilePage() {
@@ -62,21 +62,6 @@ export default function ProfilePage() {
     
     const skillsArray = skills.split(",").map(s => s.trim()).filter(Boolean);
     try {
-      
-      const { error } = await supabase.from('profiles').upsert({
-        id: account.toLowerCase(),
-        name,
-        avatar_url: avatarUrl,
-        skills: skillsArray,
-        updated_at: new Date().toISOString(),
-      });
-
-      if (error) throw error;
-      
-      toast.success("Profile saved successfully!");
-      fetchProfile(account);
-    } catch (error: any) {
-      console.warn("Supabase fetch failed (dummy keys). Falling back to local storage.");
       const dummyProfile = {
         id: account.toLowerCase(),
         name,
@@ -85,8 +70,10 @@ export default function ProfilePage() {
         updated_at: new Date().toISOString(),
       };
       localStorage.setItem(`profile_${account.toLowerCase()}`, JSON.stringify(dummyProfile));
-      toast.success("Profile saved locally (Demo Mode)!");
+      toast.success("Profile saved successfully!");
       fetchProfile(account);
+    } catch (error: any) {
+      toast.error("Failed to save profile locally.");
     } finally {
       setIsSaving(false);
     }

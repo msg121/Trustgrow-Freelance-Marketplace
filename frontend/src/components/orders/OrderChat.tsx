@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Send, Paperclip, ExternalLink, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { supabase } from "@/lib/supabaseClient";
+
 import toast from "react-hot-toast";
 
 interface ChatMessage {
@@ -28,43 +28,16 @@ export function OrderChat({ orderId, currentAccount, clientAddress, freelancerAd
   const [isUploading, setIsUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Fetch initial messages and subscribe to new ones
+  // Fetch initial messages from local storage
   useEffect(() => {
     const fetchMessages = async () => {
-      const { data, error } = await supabase
-        .from("messages")
-        .select("*")
-        .eq("order_id", orderId)
-        .order("timestamp", { ascending: true });
-
-      if (error) {
-        console.warn("Error fetching messages (dummy keys).");
-      } else if (data) {
-        setMessages(data as ChatMessage[]);
+      const localMessages = localStorage.getItem(`chat_${orderId}`);
+      if (localMessages) {
+        setMessages(JSON.parse(localMessages));
       }
     };
 
     fetchMessages();
-
-    // Subscribe to new messages for this order
-    const channel = supabase
-      .channel(`chat_order_${orderId}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages", filter: `order_id=eq.${orderId}` },
-        (payload) => {
-          setMessages((prev) => {
-            // Check if message already exists (in case we inserted it ourselves)
-            if (prev.find((m) => m.id === payload.new.id)) return prev;
-            return [...prev, payload.new as ChatMessage];
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, [orderId]);
 
   // Scroll to bottom when messages change
@@ -86,20 +59,16 @@ export function OrderChat({ orderId, currentAccount, clientAddress, freelancerAd
 
     setInputText(""); // Optimistic clear
 
-    const { data, error } = await supabase
-      .from("messages")
-      .insert([newMessage])
-      .select();
-
-    if (error) {
-      toast.error("Failed to send message.");
-      console.warn("Supabase fetch failed (dummy keys).");
-    } else if (data && data[0]) {
-      setMessages((prev) => {
-        if (prev.find((m) => m.id === data[0].id)) return prev;
-        return [...prev, data[0] as ChatMessage];
-      });
-    }
+    const finalMsg: ChatMessage = {
+      ...newMessage,
+      id: Math.random().toString(36).substring(7)
+    };
+    
+    setMessages((prev) => {
+      const updated = [...prev, finalMsg];
+      localStorage.setItem(`chat_${orderId}`, JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const handleUploadEvidence = async () => {
@@ -152,21 +121,17 @@ export function OrderChat({ orderId, currentAccount, clientAddress, freelancerAd
           timestamp: Date.now(),
         };
 
-        const { data, error } = await supabase
-          .from("messages")
-          .insert([newMessage])
-          .select();
-
-        if (error) throw error;
-
+        const finalMsg: ChatMessage = {
+          ...newMessage,
+          id: Math.random().toString(36).substring(7)
+        };
+        
+        setMessages((prev) => {
+          const updated = [...prev, finalMsg];
+          localStorage.setItem(`chat_${orderId}`, JSON.stringify(updated));
+          return updated;
+        });
         toast.success("Evidence uploaded!", { id: loadingToast });
-
-        if (data && data[0]) {
-          setMessages((prev) => {
-            if (prev.find((m) => m.id === data[0].id)) return prev;
-            return [...prev, data[0] as ChatMessage];
-          });
-        }
       } catch (err: any) {
         toast.error("Failed to upload evidence", { id: loadingToast });
         console.error(err);

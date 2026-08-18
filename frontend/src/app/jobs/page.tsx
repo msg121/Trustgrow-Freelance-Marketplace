@@ -7,7 +7,7 @@ import { SectionHeader } from "@/components/layout/SectionHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { Briefcase, Plus, Search } from "lucide-react";
-import { supabase } from "@/lib/supabaseClient";
+
 import toast from "react-hot-toast";
 
 interface Job {
@@ -32,20 +32,9 @@ export default function JobsPage() {
   const [budget, setBudget] = useState("");
 
   const fetchJobs = async () => {
-    const { data, error } = await supabase
-      .from('jobs')
-      .select('*')
-      .order('created_at', { ascending: false });
-    
-    if (data) {
-      setJobs(data as Job[]);
-    } else if (error) {
-      console.warn("Supabase fetch failed (likely using dummy keys). Please configure real keys.");
-      // Fallback: load from local storage for Demo mode
-      const localJobs = localStorage.getItem('dummy_jobs');
-      if (localJobs) {
-        setJobs(JSON.parse(localJobs));
-      }
+    const localJobs = localStorage.getItem('dummy_jobs');
+    if (localJobs) {
+      setJobs(JSON.parse(localJobs));
     }
   };
 
@@ -58,49 +47,27 @@ export default function JobsPage() {
     if (!account) return toast.error("Please connect your wallet");
 
     setIsPosting(true);
-    const { error } = await supabase.from('jobs').insert([
-      {
-        client_address: account.toLowerCase(),
-        title,
-        description,
-        budget,
-      }
-    ]);
-
+    const dummyJob: Job = {
+      id: Math.random().toString(36).substring(7),
+      client_address: account.toLowerCase(),
+      title,
+      description,
+      budget,
+      created_at: new Date().toISOString()
+    };
+    
+    setJobs(prev => {
+      const newJobs = [dummyJob, ...prev];
+      localStorage.setItem('dummy_jobs', JSON.stringify(newJobs));
+      return newJobs;
+    });
+    
     setIsPosting(false);
-
-    if (error) {
-      console.warn("Supabase fetch failed (dummy keys). Falling back to local state.");
-      // Fallback to local state for demo purposes
-      const dummyJob: Job = {
-        id: Math.random().toString(36).substring(7),
-        client_address: account.toLowerCase(),
-        title,
-        description,
-        budget,
-        created_at: new Date().toISOString()
-      };
-      
-      setJobs(prev => {
-        const newJobs = [dummyJob, ...prev];
-        // Save to localStorage for persistence in demo mode
-        localStorage.setItem('dummy_jobs', JSON.stringify(newJobs));
-        return newJobs;
-      });
-      
-      toast.success("Job posted locally (Demo Mode)!");
-      setShowModal(false);
-      setTitle("");
-      setDescription("");
-      setBudget("");
-    } else {
-      toast.success("Job posted successfully!");
-      setShowModal(false);
-      setTitle("");
-      setDescription("");
-      setBudget("");
-      fetchJobs();
-    }
+    toast.success("Job posted successfully!");
+    setShowModal(false);
+    setTitle("");
+    setDescription("");
+    setBudget("");
   };
 
   const filteredJobs = jobs.filter(j => 

@@ -3,7 +3,13 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { BrowserProvider, JsonRpcSigner, ethers } from "ethers";
 import { SEPOLIA_CHAIN_ID } from "../config/contracts";
-import { supabase, UserProfile } from "../lib/supabaseClient";
+export interface UserProfile {
+  id: string;
+  name?: string;
+  avatar_url?: string;
+  skills?: string[];
+  updated_at?: string;
+}
 import toast from "react-hot-toast";
 
 interface Web3ContextType {
@@ -45,25 +51,15 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
 
   const fetchProfile = async (address: string) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', address.toLowerCase())
-        .single();
-        
-      if (data) {
-        setUserProfile(data as UserProfile);
-      } else {
-        setUserProfile(null);
-      }
-    } catch (err) {
-      console.warn("Failed to fetch profile (dummy keys). Falling back to local storage.");
       const localProfile = localStorage.getItem(`profile_${address.toLowerCase()}`);
       if (localProfile) {
         setUserProfile(JSON.parse(localProfile));
       } else {
         setUserProfile(null);
       }
+    } catch (err) {
+      console.warn("Failed to fetch profile from local storage.");
+      setUserProfile(null);
     }
   };
 
