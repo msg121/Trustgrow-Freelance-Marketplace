@@ -18,7 +18,6 @@ export function Navbar() {
 
   const navLinks = [
     { href: "/", label: "Home" },
-    { href: "/jobs", label: "Open Jobs" },
     { href: "/marketplace", label: "Escrows" },
     { href: "/create-order", label: "Create Order" },
     { href: "/my-orders", label: "My Orders" },
@@ -65,13 +64,12 @@ export function Navbar() {
           <div className="flex items-center gap-4">
             {account ? (
               <div className="flex items-center gap-3">
-                <Link 
-                  href="/profile"
-                  className="hidden sm:flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-full py-1.5 px-4 shadow-inner hover:bg-slate-800 hover:border-slate-600 transition-all"
+                <div 
+                  className="hidden sm:flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-full py-1.5 px-4 shadow-inner"
                 >
                   <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
                   <span className="text-sm font-mono font-medium text-slate-200">{shortenAddress(account)}</span>
-                </Link>
+                </div>
                 <button
                   onClick={disconnectWallet}
                   className="p-2.5 text-slate-400 bg-slate-900 border border-slate-800 hover:text-rose-400 hover:bg-rose-500/10 hover:border-rose-500/20 rounded-full transition-all"
@@ -126,14 +124,12 @@ export function Navbar() {
           {/* Mobile Profile / Connect */}
           <div className="pt-4 mt-4 border-t border-slate-800">
             {account ? (
-              <Link 
-                href="/profile"
-                onClick={() => setIsMobileMenuOpen(false)}
+              <div 
                 className="flex items-center gap-3 px-4 py-3 bg-slate-900 rounded-xl"
               >
                 <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
                 <span className="font-mono text-slate-200">{shortenAddress(account)}</span>
-              </Link>
+              </div>
             ) : (
               <Button
                 onClick={() => {
