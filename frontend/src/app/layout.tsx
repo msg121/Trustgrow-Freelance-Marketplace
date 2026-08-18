@@ -17,6 +17,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : 'http://localhost:3000'
+  ),
   title: "TrustGrow - Web3 Freelance Marketplace",
   description: "A professional decentralized freelance marketplace and escrow platform built on Ethereum.",
   openGraph: {
