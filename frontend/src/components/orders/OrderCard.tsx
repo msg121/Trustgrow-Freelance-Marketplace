@@ -21,7 +21,7 @@ export function OrderCard({ order, userRole = "none" }: OrderCardProps) {
   const isPastDeadline = new Date() > deadlineDate;
 
   return (
-    <Card hoverEffect padding="lg" className="flex flex-col h-full">
+    <Card hoverEffect={false} padding="lg" className="flex flex-col h-full !bg-slate-800 border-slate-700 shadow-[0_8px_30px_rgba(0,0,0,0.5)] hover:shadow-[0_0_30px_rgba(79,70,229,0.4)] hover:border-indigo-400 transition-all duration-300 transform hover:-translate-y-1">
       <div className="flex justify-between items-start mb-6">
         <div>
           <div className="flex items-center gap-2 mb-2">

@@ -81,16 +81,20 @@ export default function MyOrdersPage() {
 
   const tabs: { value: TabFilter; label: string }[] = [
     { value: "all", label: "All Orders" },
-    { value: "created", label: "Created" },
-    { value: "accepted", label: "Accepted" },
-    { value: "submitted", label: "Submitted" },
+    { value: "created", label: "Pending" },
+    { value: "accepted", label: "In Progress" },
+    { value: "submitted", label: "In Review" },
     { value: "completed", label: "Completed" },
     { value: "cancelled", label: "Cancelled" },
     { value: "disputed", label: "Disputed" },
   ];
 
   return (
-    <div className="bg-[#0d0e15] min-h-screen">
+    <div className="min-h-[calc(100vh-80px)] w-full bg-gradient-to-br from-blue-900 via-indigo-950 to-slate-950 relative overflow-hidden">
+      {/* Decorative Background Elements */}
+      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-500/20 rounded-full filter blur-[100px] pointer-events-none mix-blend-screen"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-indigo-500/20 rounded-full filter blur-[100px] pointer-events-none mix-blend-screen"></div>
+      <div className="relative z-10 w-full pb-12 pt-8">
       <PageContainer>
         <SectionHeader 
         title="My Orders" 
@@ -118,7 +122,7 @@ export default function MyOrdersPage() {
       ) : (
         <div className="space-y-6">
           {/* Tabs */}
-          <div className="flex overflow-x-auto hide-scrollbar bg-slate-900 p-2 border border-slate-700/50 rounded-2xl gap-2 shadow-lg">
+          <div className="flex overflow-x-auto hide-scrollbar bg-slate-900/50 backdrop-blur-md p-2 border border-slate-700/50 rounded-2xl gap-2 shadow-lg">
             {tabs.map((t) => (
               <button
                 key={t.value}
@@ -126,7 +130,7 @@ export default function MyOrdersPage() {
                 className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-bold capitalize transition-all ${
                   filter === t.value 
                     ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-[0_0_10px_rgba(59,130,246,0.5)]" 
-                    : "text-blue-100 hover:text-white hover:bg-slate-800"
+                    : "text-blue-100 hover:text-white hover:bg-white/10"
                 }`}
               >
                 {t.label}
@@ -151,24 +155,29 @@ export default function MyOrdersPage() {
               title="No Orders Found"
               description={`You don't have any orders matching the "${filter}" status.`}
               action={
-                <div className="flex gap-4 justify-center">
-                  <Link href="/create-order">
-                    <Button className="bg-gradient-to-r from-blue-500 to-purple-500 border-none hover:from-blue-600 hover:to-purple-600 shadow-[0_0_15px_rgba(59,130,246,0.4)] text-white font-bold">
-                      Create an Order
-                    </Button>
-                  </Link>
-                  <Link href="/marketplace">
-                    <Button className="bg-gradient-to-r from-fuchsia-500 to-pink-500 border-none hover:from-fuchsia-600 hover:to-pink-600 shadow-[0_0_15px_rgba(217,70,239,0.4)] text-white font-bold">
-                      Browse Marketplace
-                    </Button>
-                  </Link>
-                </div>
+                filter === "disputed" ? undefined : (
+                  <div className="flex gap-4 justify-center">
+                    {(filter === "all" || filter === "created") && (
+                      <Link href="/create-order">
+                        <Button className="bg-gradient-to-r from-blue-500 to-purple-500 border-none hover:from-blue-600 hover:to-purple-600 shadow-[0_0_15px_rgba(59,130,246,0.4)] text-white font-bold">
+                          Create an Order
+                        </Button>
+                      </Link>
+                    )}
+                    <Link href="/marketplace">
+                      <Button className="bg-gradient-to-r from-fuchsia-500 to-pink-500 border-none hover:from-fuchsia-600 hover:to-pink-600 shadow-[0_0_15px_rgba(217,70,239,0.4)] text-white font-bold">
+                        Browse Marketplace
+                      </Button>
+                    </Link>
+                  </div>
+                )
               }
             />
           )}
         </div>
       )}
       </PageContainer>
+      </div>
     </div>
   );
 }

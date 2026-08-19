@@ -94,7 +94,12 @@ export default function OrderDetailsPage() {
   const isPastDeadline = new Date() > deadlineDate;
 
   return (
-    <PageContainer maxWidth="7xl">
+    <div className="min-h-[calc(100vh-80px)] w-full bg-gradient-to-br from-blue-900 via-indigo-950 to-slate-950 relative overflow-hidden">
+      {/* Decorative Background Elements */}
+      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-500/20 rounded-full filter blur-[100px] pointer-events-none mix-blend-screen"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-indigo-500/20 rounded-full filter blur-[100px] pointer-events-none mix-blend-screen"></div>
+      <div className="relative z-10 w-full pb-12 pt-8">
+        <PageContainer maxWidth="7xl">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">
@@ -124,11 +129,38 @@ export default function OrderDetailsPage() {
         <OrderTimeline currentState={order.state} />
       </Card>
 
+      {/* Dispute Reason */}
+      {order.state === 5 && order.disputeReason && (
+        <Card padding="md" className="mb-8 border-rose-500/30 bg-rose-950/10">
+          <h3 className="text-lg font-bold text-rose-500 mb-2 flex items-center">
+            <AlertTriangle className="w-5 h-5 mr-2" />
+            Dispute Details
+          </h3>
+          <p className="text-sm text-slate-300 mb-3">
+            A dispute has been raised for this order. The admin is currently reviewing the evidence provided below.
+          </p>
+          <div className="bg-slate-900/80 p-3 rounded-lg border border-rose-500/20 break-all text-sm font-mono text-slate-400">
+            {order.disputeReason.startsWith("ipfs://") || order.disputeReason.startsWith("Qm") ? (
+              <a 
+                href={order.disputeReason.startsWith("ipfs://") ? order.disputeReason.replace("ipfs://", "https://ipfs.io/ipfs/") : `https://ipfs.io/ipfs/${order.disputeReason}`} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:text-blue-300 underline flex items-center"
+              >
+                View Evidence on IPFS
+              </a>
+            ) : (
+              order.disputeReason
+            )}
+          </div>
+        </Card>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
         {/* Parties */}
         <div className="md:col-span-2 space-y-6">
-          <Card padding="md">
-            <h3 className="text-lg font-bold text-white mb-4 border-b border-slate-800 pb-3">Parties Involved</h3>
+          <Card padding="md" className="!bg-slate-800 border-slate-700 shadow-xl">
+            <h3 className="text-lg font-bold text-white mb-4 border-b border-slate-700 pb-3">Parties Involved</h3>
             <div className="space-y-4">
               <div className="flex items-start">
                 <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 mr-4 shrink-0">
@@ -153,8 +185,8 @@ export default function OrderDetailsPage() {
             </div>
           </Card>
 
-          <Card padding="md">
-            <h3 className="text-lg font-bold text-white mb-4 border-b border-slate-800 pb-3">Order Information</h3>
+          <Card padding="md" className="!bg-slate-800 border-slate-700 shadow-xl">
+            <h3 className="text-lg font-bold text-white mb-4 border-b border-slate-700 pb-3">Order Information</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-xs text-slate-500 uppercase tracking-wider font-bold mb-1 flex items-center">
@@ -179,8 +211,8 @@ export default function OrderDetailsPage() {
 
         {/* Financials & Actions */}
         <div className="space-y-6">
-          <Card padding="md" className="bg-slate-900 border-indigo-500/20">
-            <h3 className="text-lg font-bold text-white mb-4 border-b border-slate-800 pb-3">Financials</h3>
+          <Card padding="md" className="!bg-slate-800 border-slate-700 shadow-xl">
+            <h3 className="text-lg font-bold text-white mb-4 border-b border-slate-700 pb-3">Financials</h3>
             
             <div className="flex justify-between items-center mb-3">
               <span className="text-slate-400 text-sm">Escrowed</span>
@@ -201,8 +233,8 @@ export default function OrderDetailsPage() {
           </Card>
 
           {/* Action Box */}
-          <Card padding="md">
-            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-800 pb-3">Available Actions</h3>
+          <Card padding="md" className="!bg-slate-800 border-slate-700 shadow-xl">
+            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-700 pb-3">Available Actions</h3>
             
             <div className="space-y-3">
               {order.state === 0 && isFreelancer && (
@@ -285,6 +317,8 @@ export default function OrderDetailsPage() {
           </Card>
         </div>
       </div>
-    </PageContainer>
+        </PageContainer>
+      </div>
+    </div>
   );
 }

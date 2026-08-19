@@ -66,8 +66,7 @@ export default function CreateOrderPage() {
     try {
       setError(null);
       setIsCreating(true);
-      const tx = await createOrder(freelancer, parsedAmount, durationSeconds);
-      await tx.wait();
+      await createOrder(freelancer, parsedAmount, durationSeconds);
       router.push("/my-orders");
     } catch (err: any) {
       console.error(err);
